@@ -1,8 +1,8 @@
-#!/usr/bin/env pypy
+#!/usr/bin/env python3
 
 import sys
 import os
-import commands as CMD
+import subprocess as CMD
 from random import randint, uniform
 
 
@@ -50,7 +50,7 @@ class NoC_GenT(object):
             dy = randint(0, h)
             xpos = (x + dx) % w
             ypos = (y + dy) % h
-            
+
           FlowV = FlowT(xpos, ypos, rateV, burstV)
           NodeV.Flows.append(FlowV)
           pass
@@ -87,7 +87,7 @@ class NoC_GenT(object):
 
 
     return self
-  
+
   def _Set_All2Row_Traffic(self):
     w = self.W
     h = self.H
@@ -122,12 +122,12 @@ class NoC_GenT(object):
 
 
 def writeBuffer(buff, filepath):
-  f = open(filepath, 'wb')
+  f = open(filepath, 'w')
   f.write(buff)
   f.close()
 
 def readBuffer(filepath):
-  f = open(filepath, 'rb')
+  f = open(filepath, 'r')
   buff = f.read()
   f.close()
   return buff
@@ -150,7 +150,7 @@ def py2verilog(NoCP, dump_path):
       r_str += '%x\n'%r
       p_str += '%x\n'%RecV.period
       b_str += '%x\n'%RecV.burst
-  
+
   if not os.path.exists(dump_path):
     CMD.getoutput('mkdir -p %s'%dump_path)
   writeBuffer(X_str, dump_path + 'x.dat')
@@ -178,20 +178,20 @@ def NoC_to_Flows_mapFile(NoCP, filepath):
 
 
 def main(w, h ,outfile, presetRate, max_burst, max_flows, trfType):
-  print w, h, presetRate, trfType, '-o' + outfile
+  print(w, h, presetRate, trfType, '-o' + outfile)
   NoC1 = NoC_GenT(w,h, presetRate, max_burst=max_burst, max_flows=max_flows, trType=trfType)
   NoC_to_Flows_mapFile(NoC1, outfile)
   pass
 
 
-  
+
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='NoC Traffic Generator')
-  parser.add_argument('W', metavar='Width', type=int, help='the hight of the NoC')
-  parser.add_argument('H', metavar='Hight', type=int, help='the width of the NoC')
+  parser.add_argument('W', metavar='Width', type=int, help='the width of the NoC')
+  parser.add_argument('H', metavar='Height', type=int, help='the height of the NoC')
   parser.add_argument('-o', metavar='output', type=str, default='./map.dat', help='the map file')
-  parser.add_argument('-p', metavar='Rate', type=float, default=-1, help='overide the rate of all the flows, default = random (1/m^2, 0.5)')
-  parser.add_argument('-t', metavar='TrafficType',  help='set the traffice type => {random, all2one, all2row, all2column}: default = random', default='random')
+  parser.add_argument('-p', metavar='Rate', type=float, default=-1, help='override the rate of all flows; default = random (1/m^2, 0.5)')
+  parser.add_argument('-t', metavar='TrafficType',  help='set the traffic type => {random, all2one, all2row, all2column}; default = random', default='random')
   parser.add_argument('-f', metavar='flows', type=int, default=1, help='the maximum number of different flows per node')
   parser.add_argument('-b', metavar='bursts', type=int, default=1, help='the maximum number of burstiness per flow')
   args = parser.parse_args()
@@ -201,4 +201,4 @@ if __name__ == '__main__':
     pass
 
   main(args.W, args.H, args.o, args.p, args.b, args.f, args.t)
-    
+

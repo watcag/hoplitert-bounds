@@ -1,18 +1,18 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 __author__ = 'Saud Wasly'
 import sys
 import os
-import commands as CMD
+import subprocess as CMD
 from math import ceil
 
 def writeBuffer(buff, filepath):
-  f = open(filepath, 'wb')
+  f = open(filepath, 'w')
   f.write(buff)
   f.close()
 
 def readBuffer(filepath):
-  f = open(filepath, 'rb')
+  f = open(filepath, 'r')
   buff = f.read()
   f.close()
   return buff
@@ -70,7 +70,7 @@ class NoCT(object):
     self.H = h
     self.max_convergentLimit = 2 ** 32
     self.Nodes = [[NodeT(x, y, []) for x in range(w)] for y in range(h)]  # type: list[list[NodeT]]
-    
+
   def dump_results(self, filepath):
     rows = ''
     for y in range(self.H):
@@ -92,11 +92,11 @@ class NoCT(object):
         NodeV = self.Nodes[y][x]
         for fl in NodeV.Flows:
           rate_percent = int(fl.rate * 100.0)
-          row = '%x, %x, %x, %x, %x, %x\n'%(x,y, fl.dx,fl.dy, fl.burst, rate_percent)
+          rows += '%x, %x, %x, %x, %x, %x\n'%(x,y, fl.dx,fl.dy, fl.burst, rate_percent)
     writeBuffer(rows, filepath)
 
   def dump_NoC_verilog_multi(self, dump_path):
-    path = './' + os.path.normpath(dump_path) + '/'
+    path = os.path.abspath(dump_path)
     # path = dump_path
     h = self.H
     w = self.W
@@ -111,22 +111,21 @@ class NoCT(object):
         for fl in NodeV.Flows:
             X_str += '%x\n' % fl.dx
             Y_str += '%x\n' % fl.dy
-            r = (fl.rate * 100)
+            r = int(fl.rate * 100)
             r_str += '%x\n' % r
             p_str += '%x\n' % fl.period
             b_str += '%x\n' % fl.burst
-  
+
     if not os.path.exists(path):
-      print 'Creating new directory'
-      retV = CMD.getoutput('mkdir -p %s' % path)
-      print retV
+      print('Creating new directory')
+      os.makedirs(path)
       # exit(1)
     # print 'Path = %s'% path
-    writeBuffer(X_str, path + 'destx.dat')
-    writeBuffer(Y_str, path + 'desty.dat')
-    writeBuffer(r_str, path + 'destrate.dat')
-    writeBuffer(p_str, path + 'destperiod.dat')
-    writeBuffer(b_str, path + 'destburst.dat')
+    writeBuffer(X_str, os.path.join(path, 'destx.dat'))
+    writeBuffer(Y_str, os.path.join(path, 'desty.dat'))
+    writeBuffer(r_str, os.path.join(path, 'destrate.dat'))
+    writeBuffer(p_str, os.path.join(path, 'destperiod.dat'))
+    writeBuffer(b_str, os.path.join(path, 'destburst.dat'))
 
 
 def parse_mapfile(filepath):
@@ -152,6 +151,6 @@ def parse_mapfile(filepath):
 if __name__ == '__main__':
     ifilename = sys.argv[1]
     odire = sys.argv[2]
-    print sys.argv
+    print(sys.argv)
     X1 = parse_mapfile(ifilename)
     X1.dump_NoC_verilog_multi(odire)

@@ -1,8 +1,8 @@
-#!/usr/bin/env pypy
+#!/usr/bin/env python3
 
 import sys
 import os
-import commands as CMD
+import subprocess as CMD
 from math import ceil
 import argparse
 from Datatypes import *
@@ -20,12 +20,12 @@ def max_arrival(r, b, t, StabilityTest=False):
 
 
 def writeBuffer(buff, filepath):
-  f = open(filepath, 'wb')
+  f = open(filepath, 'w')
   f.write(buff)
   f.close()
 
 def readBuffer(filepath):
-  f = open(filepath, 'rb')
+  f = open(filepath, 'r')
   buff = f.read()
   f.close()
   return buff
@@ -58,12 +58,12 @@ class NoCT(object):
     self.Worst_WaitingTime_S = 0
     self.Total_Worst_WaitingTime_E = 0
     self.Total_Worst_WaitingTime_S = 0
-    
+
     self.largest_period_S = 0
     self.largest_period_E = 0
     self.Node_largest_period_S = None #type: NodeT
     self.Node_largest_period_E = None #type: NodeT
-    
+
 
   def DX(self, source, dest):
     m = self.W
@@ -174,12 +174,12 @@ class NoCT(object):
     pktsW2E, pktsW2E_Bursty, burstW2E, total_rate_W2E = self.W2E(x, y, t)
     pktsW2S, pktsW2S_Bursty, burstW2S, total_rateW2S = self.W2S(x, y, t)
     pktsDefTot, pktsDefTot_Bursty, burstDefTot, total_rateDefTot = self.dtot(y, t)
-    
+
     pktsNO = pktsW2E + pktsW2S + pktsDefTot
     pktsNO_Bursty = pktsW2E_Bursty + pktsW2S_Bursty + pktsDefTot_Bursty
     totalburst = burstW2E + burstW2S + burstDefTot
     total_rate = total_rate_W2E + total_rateW2S + total_rateDefTot
-    
+
     return pktsNO, pktsNO_Bursty, totalburst, total_rate
 
   def max_burst_E(self, NodeP):
@@ -237,7 +237,7 @@ class NoCT(object):
         if PL_S > largest_period_S:
           largest_period_S = PL_S
           Node_largest_period_S = NodeV
-          
+
     return largest_period_E, Node_largest_period_E, largest_period_S, Node_largest_period_S
 
 
@@ -260,7 +260,7 @@ class NoCT(object):
     return maxV
 
   def max_waitingTime_E(self):
-    
+
     max_Ts = 0
     max_Ts_tot = 0
     for y in range(self.H):
@@ -280,11 +280,11 @@ class NoCT(object):
         for fl in nd.Flows:
           if max_Tf < fl.InFlight_latency:
             max_Tf = fl.InFlight_latency
-          
+
           if max_Tf_opt < fl.InFlight_latency_opt:
             max_Tf_opt = fl.InFlight_latency_opt
-    
-    
+
+
     return max_Tf, max_Tf_opt
 
   def avg_inflight_Latency(self):
@@ -299,7 +299,7 @@ class NoCT(object):
           sum_Tf_opt += fl.InFlight_latency_opt
     avg_Tf = int(float(sum_Tf)/N)
     avg_Tf_opt = int(float(sum_Tf_opt)/N)
-    
+
     return avg_Tf, avg_Tf_opt
 
   def max_waitingTime_S(self):
@@ -334,7 +334,7 @@ class NoCT(object):
     # totPkts_fixed = round(total_rate * t, 3)
     totPkts_fixed = ceil(total_rate * t)
 #    assert totPkts_fixed1 == int(totPkts_fixed)
-    
+
     # stable = True if  self.max_burst_E(NodeV) < 1 or self.max_rate_E(NodeV) <= 0  else False  # check if you are not sending at all
     # if not stable:  # check if you are not sending East
     #   stable = True if not self.sending_E(NodeV)  else False
@@ -348,7 +348,7 @@ class NoCT(object):
     stable = total_rate + self.max_rate_E(NodeV) <= 1.0
 
     return stable, totPkts_fixed, pktNo_Bursty, burstsNO, total_rate
-  
+
   def is_stable_S(self, x, y, t):
     pktNO_W2S, pktNO_W2S_Bursty, burstsNO_W2S, total_rateW2S = self.W2S(x, y, t)
     pktNO_N2S, pktNO_N2S_Bursty, burstsNO_N2S, total_rateN2S = self.N2S(x, y, t)
@@ -374,7 +374,7 @@ class NoCT(object):
     #     stable2 = total_rate + self.max_rate_S(NodeV) <= 1.0
     #     assert stable == stable2
     stable = total_rate + self.max_rate_S(NodeV) <= 1.0
-      
+
     return stable, totPkts_fixed, pktNO_tot_Bursty, burst_tot, total_rate
 
   def inflight_latency(self, sx, sy, dx, dy):
@@ -403,7 +403,7 @@ class NoCT(object):
 
     lat = self.DX(sx, dx) + self.DY(sy, dy) + (NORows*self.W) + 2
     return lat
-  
+
   def WaitingTime_form1_sum(self, x, y):
     NodeV = self.Nodes[y][x]
     max_rate_E = self.max_rate_E(NodeV)
@@ -416,7 +416,7 @@ class NoCT(object):
       if max_rate_E >= 1 and burstsNO_E > 0:
         Ts_E = -1
         break
-    
+
     max_rate_S = self.max_rate_S(NodeV)
     stable_S, pktsNO_S, pktsNO_Bursty_S, burstsNO_S, total_rate_S = self.is_stable_S(x, y, 1)
     Ts_S = 0
@@ -431,7 +431,7 @@ class NoCT(object):
     return Ts_E, Ts_S
 
   def WaitingTime_form2_TotalTraffic(self, x, y, stable_E, stable_S):
-    NodeV = self.Nodes[y][x]    
+    NodeV = self.Nodes[y][x]
     burstsNO_E = self.is_stable_E(x, y, 0)[TI.burstNO]
     if stable_E:
       Ts_E = burstsNO_E
@@ -447,7 +447,7 @@ class NoCT(object):
         # Ts_E = self.is_stable_E(x, y, Ts_E_pre)[TI.pktsNOBursty]
     else:
       Ts_E = -1
-    
+
 
     burstsNO_S = self.is_stable_S(x, y, 0)[TI.burstNO]
     if stable_S:
@@ -467,7 +467,7 @@ class NoCT(object):
       Ts_S = -1
 
     return Ts_E, Ts_S
-  
+
   def WaitingTime_form3_totalrates(self, x, y, stable_E, stable_S):
     NodeV = self.Nodes[y][x]
     Ts_E = -1
@@ -482,7 +482,7 @@ class NoCT(object):
       Ts_E = burstsNO_E/(1-total_rate_E)
       Ts_E = int((Ts_E))
       Ts_Total_E = Ts_E + (self.max_period_E(NodeV) -1)
-    
+
 
     _, pktsNO_S, pktsNO_Bursty_S, burstsNO_S, total_rate_S = self.is_stable_S(x, y, 0)
     if total_rate_S < 1 and stable_S:
@@ -494,9 +494,9 @@ class NoCT(object):
     return Ts_E, Ts_S, Ts_Total_E, Ts_Total_S
 
 
-    
-    
-  
+
+
+
   def calc_bounds(self, silent_mode):
     retV = True
 
@@ -511,16 +511,16 @@ class NoCT(object):
         min_period_S = int(round(1.0/max_rate_S)) if max_rate_S > 0.0 else 0
         stable_E, pktsNO_E, pktsNO_Bursty_E, burstsNO_E, total_rate_E = self.is_stable_E(x, y, min_period_E)
         stable_S, pktsNO_S, pktsNO_Bursty_S, burstsNO_S, total_rate_S = self.is_stable_S(x, y, min_period_S)
-        
+
         # TsE, TsS = self.WaitingTime_form1_sum(x, y)
         # TsE, TsS = self.WaitingTime_form2_TotalTraffic(x, y, stable_E, stable_S)
         TsE, TsS, Ts_Total_E, Ts_Total_S = self.WaitingTime_form3_totalrates(x, y, stable_E, stable_S)
-        
+
         NodeV.Max_Waiting_E = TsE if max_burst_E > 0 else 0
         NodeV.Max_Waiting_S = TsS if max_burst_S > 0 else 0
         NodeV.Max_TotalWaiting_E = Ts_Total_E if max_burst_E > 0 else 0
         NodeV.Max_TotalWaiting_S = Ts_Total_S if max_burst_S > 0 else 0
-        
+
         NodeV.Sustained_Waiting_E = pktsNO_E  if max_burst_E > 0 else 0
         NodeV.Sustained_Waiting_S = pktsNO_S  if max_burst_S > 0 else 0
 
@@ -533,16 +533,16 @@ class NoCT(object):
 
         if not stable_E:
           if not silent_mode:
-            print 'Node(%d,%d) E-Port is not sustainable'%(x,y)
+            print('Node(%d,%d) E-Port is not sustainable'%(x,y))
             # print '\tTotal incomming pkts on W-port is %d in %d cycles' % (pktsNO_E, min_period_E)
-            print '\tTotal rate going East from the W-port is %f' % total_rate_E
+            print('\tTotal rate going East from the W-port is %f' % total_rate_E)
           retV = False
 
         if not stable_S:
           if not silent_mode:
-            print 'Node(%d,%d) S-Port is not sustainable'%(x,y)
+            print('Node(%d,%d) S-Port is not sustainable'%(x,y))
             # print '\tTotal incomming pkts on W-port and N-port is %d in %d cycles' % (pktsNO_S, min_period_S)
-            print '\tTotal rate going South from the W-port + N-Port is %f' % total_rate_S
+            print('\tTotal rate going South from the W-port + N-Port is %f' % total_rate_S)
           retV = False
 
     self.All_stable = retV
@@ -552,7 +552,7 @@ class NoCT(object):
       self.largest_period_E, self.Node_largest_period_E, self.largest_period_S, self.Node_largest_period_S = self.get_larget_periods_stat()
     return retV
 
-  
+
   def dump_results(self, filepath):
     rows = ''
     for y in range(self.H):
@@ -603,14 +603,14 @@ def main(mapFile, resultsFile, silent_mode):
     if not silent_mode:
       if stable:
         print('network is Stable (True)\nWorst Waiting Times')
-        print('\tNetwork Waiting Times only:\n\t\tEast:%d\n\t\tSouth:%d' % (NoC1.Worst_WaitingTime_E, NoC1.Worst_WaitingTime_S))
-        print('\tTotal (network + bucket) (of the above flows):\n\t\tEast:%d\n\t\tSouth:%d' % (NoC1.Total_Worst_WaitingTime_E, NoC1.Total_Worst_WaitingTime_S))
-        print('\tTotal worst Client waitings for the bucket only :\n\t\tEast:%d\n\t\tSouth:%d' % (LP_totW_E, LP_totW_S))
-        print('\tThe Total abslute worst Waiting:\n\t\tEast:%d\n\t\tSouth:%d' % (absWorst_E, absWorst_S))
+        print(('\tNetwork Waiting Times only:\n\t\tEast:%d\n\t\tSouth:%d' % (NoC1.Worst_WaitingTime_E, NoC1.Worst_WaitingTime_S)))
+        print(('\tTotal (network + bucket) (of the above flows):\n\t\tEast:%d\n\t\tSouth:%d' % (NoC1.Total_Worst_WaitingTime_E, NoC1.Total_Worst_WaitingTime_S)))
+        print(('\tWorst client waiting times for the token bucket only:\n\t\tEast:%d\n\t\tSouth:%d' % (LP_totW_E, LP_totW_S)))
+        print(('\tAbsolute worst waiting times:\n\t\tEast:%d\n\t\tSouth:%d' % (absWorst_E, absWorst_S)))
       else:
         print('network is Not Stable (False)')
     NoC1.dump_results(resultsFile)
-    print int(stable)
+    print(int(stable))
 
 
 
